@@ -1,4 +1,4 @@
-module Adbs exposing (ad2bs, miti)
+module Adbs exposing (Miti, ad2bs, miti)
 
 import Array
 import Date
@@ -19,12 +19,10 @@ miti year month day =
     }
 
 
-bs_equiv =
-    miti 2000 9 17
-
-
-ad_equiv =
-    miti 1944 1 1
+( bs_equiv, ad_equiv ) =
+    ( miti 2000 9 17
+    , Date.fromString "1944/1/1" |> Result.withDefault (Date.fromTime 0)
+    )
 
 
 calendarData =
@@ -149,10 +147,10 @@ calendarData =
 
 {-| Coverts string in the AD calendar to BS calendar format
 -}
-ad2bs : String -> Maybe Miti
+ad2bs : Date.Date -> Maybe Miti
 ad2bs ad =
-    verifyDate ad
-        |> Maybe.andThen (countAdDays ad_equiv)
+    verifyAdDate ad
+        |> Maybe.map (countAdDays ad_equiv)
         |> Maybe.andThen (addDaysToBS bs_equiv)
 
 
@@ -203,67 +201,35 @@ addDaysToBSInternal miti days =
         { miti | day = miti.day + days }
 
 
-
--- TODO magic
-
-
 {-| Counts the number of days between two AD dates
-Expects the date to be proper,
-else returns a diff from the epoch
 -}
-countAdDays : Miti -> Miti -> Maybe Int
-countAdDays startMiti endMiti =
+countAdDays : Date.Date -> Date.Date -> Int
+countAdDays start end =
     let
         startDate =
-            Date.fromString (mitiToString startMiti)
-                |> Result.withDefault (Date.fromTime 0)
-                |> Date.toTime
+            Date.toTime start
 
         endDate =
-            Date.fromString (mitiToString endMiti)
-                |> Result.withDefault (Date.fromTime 0)
-                |> Date.toTime
+            Date.toTime end
     in
-    if (endDate == 0) || (startDate == 0) then
-        Nothing
-    else
-        (endDate - startDate)
-            / (1000 * 60 * 60 * 24)
-            |> floor
-            |> Just
+    (endDate - startDate)
+        / (1000 * 60 * 60 * 24)
+        |> floor
 
 
-{-| Verify if a date is for a year/month/day format
-and fits in the required range of year, months and days.
-This is just a semantic check. It doesn't check if the date
-is a real date or not.
+{-| Verify if a date fits in the required range of year.
+One that we can convert to BS for
 -}
-verifyDate : String -> Maybe Miti
-verifyDate date =
-    case String.split "/" date of
-        [ year, month, day ] ->
-            verifyDateParams year month day
-
-        _ ->
-            Nothing
-
-
-verifyDateParams : String -> String -> String -> Maybe Miti
-verifyDateParams yearString monthString dayString =
+verifyAdDate : Date.Date -> Maybe Date.Date
+verifyAdDate date =
     let
         year =
-            Result.withDefault 0 (String.toInt yearString)
-
-        month =
-            Result.withDefault 0 (String.toInt monthString)
-
-        day =
-            Result.withDefault 0 (String.toInt dayString)
+            Date.year date
     in
-    if year > 1943 && year < 2093 && month > 0 && month < 13 && day > 0 && day < 32 then
-        Just (miti year month day)
-    else
+    if year < 1944 || year > 2035 then
         Nothing
+    else
+        Just date
 
 
 mitiToString : Miti -> String
