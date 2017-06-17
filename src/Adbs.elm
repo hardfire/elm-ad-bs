@@ -1,4 +1,4 @@
-module Adbs exposing (Miti, ad2bs, miti)
+module Adbs exposing (Miti, ad2bs, bs2ad, countBsDays, miti)
 
 import Array
 import Date
@@ -145,26 +145,97 @@ calendarData =
         ]
 
 
-{-| Coverts string in the AD calendar to BS calendar format
+{-| Coverts Date type to a date string in BS calendar format
 -}
 ad2bs : Date.Date -> Maybe Miti
 ad2bs ad =
     verifyAdDate ad
         |> Maybe.map (countAdDays ad_equiv)
-        |> Maybe.andThen (addDaysToBS bs_equiv)
+        |> Maybe.andThen (addDaysToBs bs_equiv)
+
+
+{-| Coverts date string in the BS calendar format to Date type
+-}
+bs2ad : Miti -> Maybe Date.Date
+bs2ad bs =
+    verifyBsDate bs
+        |> Maybe.map (countBsDays 0 bs_equiv)
+        |> Maybe.map (addDaysToAd ad_equiv)
+
+
+{-| adds days to Date.Date
+-}
+addDaysToAd : Date.Date -> Int -> Date.Date
+addDaysToAd date days =
+    let
+        timestamp =
+            Date.toTime date
+
+        daysToAdd =
+            toFloat (days * (1000 * 60 * 60 * 24))
+    in
+    Date.fromTime (timestamp + daysToAdd)
+
+
+{-| Counts days between two BS dates
+
+  - count till then end of the year
+  - count years until the year before
+  - count months till the month and year matches
+  - count days till date matches
+  - return sum when everything matches
+
+-}
+countBsDays : Int -> Miti -> Miti -> Int
+countBsDays sum start end =
+    let
+        monthsInCurrentYear =
+            Dict.get start.year calendarData
+                |> Maybe.withDefault (Array.fromList [])
+
+        daysInYear =
+            Array.get 12 monthsInCurrentYear
+                |> Maybe.withDefault 365
+
+        daysInMonth =
+            Array.get (start.month - 1) monthsInCurrentYear
+                |> Maybe.withDefault 30
+
+        daysRemainingInMonth =
+            daysInMonth - start.day
+    in
+    if start.year == end.year && start.month == end.month && start.day <= end.day then
+        sum + end.day - start.day
+    else if (start.year + 1) < end.year && start.month == 1 && start.day == 1 then
+        countBsDays
+            (sum + daysInYear)
+            { start | year = start.year + 1 }
+            end
+    else if start.month == 12 then
+        countBsDays
+            (sum + daysRemainingInMonth + 1)
+            { start | month = 1, day = 1, year = start.year + 1 }
+            end
+    else if start.month < 12 then
+        countBsDays
+            (sum + daysRemainingInMonth + 1)
+            { start | month = start.month + 1, day = 1 }
+            end
+    else
+        sum
 
 
 {-| Adds days to a BS Date
 -}
-addDaysToBS : Miti -> Int -> Maybe Miti
-addDaysToBS miti days =
+addDaysToBs : Miti -> Int -> Maybe Miti
+addDaysToBs miti days =
     let
         monthsInCurrentYear =
             Dict.get miti.year calendarData
                 |> Maybe.withDefault (Array.fromList [])
     in
     if Array.length monthsInCurrentYear > 0 then
-        addDaysToBSInternal miti days
+        addDaysToBsInternal miti days
             |> Just
     else
         Nothing
@@ -175,8 +246,8 @@ first adds years,
 then months,
 finally the days
 -}
-addDaysToBSInternal : Miti -> Int -> Miti
-addDaysToBSInternal miti days =
+addDaysToBsInternal : Miti -> Int -> Miti
+addDaysToBsInternal miti days =
     let
         monthsInCurrentYear =
             Dict.get miti.year calendarData
@@ -190,11 +261,11 @@ addDaysToBSInternal miti days =
     in
     if days > daysRemainingInMonth then
         if miti.month < 12 then
-            addDaysToBSInternal
+            addDaysToBsInternal
                 { miti | month = miti.month + 1, day = 1 }
                 (days - daysRemainingInMonth - 1)
         else
-            addDaysToBSInternal
+            addDaysToBsInternal
                 { miti | year = miti.year + 1, month = 1, day = 1 }
                 (days - daysRemainingInMonth - 1)
     else
@@ -232,6 +303,22 @@ verifyAdDate date =
         Just date
 
 
-mitiToString : Miti -> String
-mitiToString miti =
-    toString miti.year ++ "/" ++ toString miti.month ++ "/" ++ toString miti.day
+{-| Verify if a date fits in the required range of year.
+One that we can convert to AD
+-}
+verifyBsDate : Miti -> Maybe Miti
+verifyBsDate miti =
+    let
+        year =
+            miti.year
+
+        month =
+            miti.month
+
+        day =
+            miti.day
+    in
+    if year < 2000 || year > 2092 || month < 1 || month > 12 || day < 1 || day > 32 then
+        Nothing
+    else
+        Just miti
