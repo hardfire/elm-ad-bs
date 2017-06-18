@@ -13,9 +13,9 @@ toBsFailingDateConversion message dateString =
                 |> Result.toMaybe
                 |> Maybe.andThen Adbs.ad2bs
     in
-    test message <|
-        \() ->
-            Expect.equal convertedDate Nothing
+        test message <|
+            \() ->
+                Expect.equal convertedDate Nothing
 
 
 toBsDateConversion dateString miti =
@@ -25,9 +25,9 @@ toBsDateConversion dateString miti =
                 |> Result.toMaybe
                 |> Maybe.andThen Adbs.ad2bs
     in
-    test dateString <|
-        \() ->
-            Expect.equal convertedDate (Just miti)
+        test dateString <|
+            \() ->
+                Expect.equal convertedDate (Just miti)
 
 
 toAdFailingDateConversion message miti =
@@ -35,9 +35,9 @@ toAdFailingDateConversion message miti =
         convertedDate =
             Adbs.bs2ad miti
     in
-    test message <|
-        \() ->
-            Expect.equal convertedDate Nothing
+        test message <|
+            \() ->
+                Expect.equal convertedDate Nothing
 
 
 toAdDateConversion miti dateString =
@@ -45,9 +45,9 @@ toAdDateConversion miti dateString =
         convertedDate =
             Adbs.bs2ad miti
     in
-    test dateString <|
-        \() ->
-            Expect.equal convertedDate (Date.fromString dateString |> Result.toMaybe)
+        test dateString <|
+            \() ->
+                Expect.equal convertedDate (Date.fromString dateString |> Result.toMaybe)
 
 
 suite : Test

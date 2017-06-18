@@ -1,4 +1,4 @@
-module Adbs exposing (Miti, ad2bs, bs2ad, countBsDays, miti)
+module Adbs exposing (Miti, ad2bs, bs2ad, miti)
 
 import Array
 import Date
@@ -174,7 +174,7 @@ addDaysToAd date days =
         daysToAdd =
             toFloat (days * (1000 * 60 * 60 * 24))
     in
-    Date.fromTime (timestamp + daysToAdd)
+        Date.fromTime (timestamp + daysToAdd)
 
 
 {-| Counts days between two BS dates
@@ -204,25 +204,25 @@ countBsDays sum start end =
         daysRemainingInMonth =
             daysInMonth - start.day
     in
-    if start.year == end.year && start.month == end.month && start.day <= end.day then
-        sum + end.day - start.day
-    else if (start.year + 1) < end.year && start.month == 1 && start.day == 1 then
-        countBsDays
-            (sum + daysInYear)
-            { start | year = start.year + 1 }
-            end
-    else if start.month == 12 then
-        countBsDays
-            (sum + daysRemainingInMonth + 1)
-            { start | month = 1, day = 1, year = start.year + 1 }
-            end
-    else if start.month < 12 then
-        countBsDays
-            (sum + daysRemainingInMonth + 1)
-            { start | month = start.month + 1, day = 1 }
-            end
-    else
-        sum
+        if start.year == end.year && start.month == end.month && start.day <= end.day then
+            sum + end.day - start.day
+        else if (start.year + 1) < end.year && start.month == 1 && start.day == 1 then
+            countBsDays
+                (sum + daysInYear)
+                { start | year = start.year + 1 }
+                end
+        else if start.month == 12 then
+            countBsDays
+                (sum + daysRemainingInMonth + 1)
+                { start | month = 1, day = 1, year = start.year + 1 }
+                end
+        else if start.month < 12 then
+            countBsDays
+                (sum + daysRemainingInMonth + 1)
+                { start | month = start.month + 1, day = 1 }
+                end
+        else
+            sum
 
 
 {-| Adds days to a BS Date
@@ -234,11 +234,11 @@ addDaysToBs miti days =
             Dict.get miti.year calendarData
                 |> Maybe.withDefault (Array.fromList [])
     in
-    if Array.length monthsInCurrentYear > 0 then
-        addDaysToBsInternal miti days
-            |> Just
-    else
-        Nothing
+        if Array.length monthsInCurrentYear > 0 then
+            addDaysToBsInternal miti days
+                |> Just
+        else
+            Nothing
 
 
 {-| Recursively adds days to a BS Date
@@ -259,17 +259,17 @@ addDaysToBsInternal miti days =
             )
                 - miti.day
     in
-    if days > daysRemainingInMonth then
-        if miti.month < 12 then
-            addDaysToBsInternal
-                { miti | month = miti.month + 1, day = 1 }
-                (days - daysRemainingInMonth - 1)
+        if days > daysRemainingInMonth then
+            if miti.month < 12 then
+                addDaysToBsInternal
+                    { miti | month = miti.month + 1, day = 1 }
+                    (days - daysRemainingInMonth - 1)
+            else
+                addDaysToBsInternal
+                    { miti | year = miti.year + 1, month = 1, day = 1 }
+                    (days - daysRemainingInMonth - 1)
         else
-            addDaysToBsInternal
-                { miti | year = miti.year + 1, month = 1, day = 1 }
-                (days - daysRemainingInMonth - 1)
-    else
-        { miti | day = miti.day + days }
+            { miti | day = miti.day + days }
 
 
 {-| Counts the number of days between two AD dates
@@ -283,9 +283,9 @@ countAdDays start end =
         endDate =
             Date.toTime end
     in
-    (endDate - startDate)
-        / (1000 * 60 * 60 * 24)
-        |> floor
+        (endDate - startDate)
+            / (1000 * 60 * 60 * 24)
+            |> floor
 
 
 {-| Verify if a date fits in the required range of year.
@@ -297,10 +297,10 @@ verifyAdDate date =
         year =
             Date.year date
     in
-    if year < 1944 || year > 2035 then
-        Nothing
-    else
-        Just date
+        if year < 1944 || year > 2035 then
+            Nothing
+        else
+            Just date
 
 
 {-| Verify if a date fits in the required range of year.
@@ -318,7 +318,7 @@ verifyBsDate miti =
         day =
             miti.day
     in
-    if year < 2000 || year > 2092 || month < 1 || month > 12 || day < 1 || day > 32 then
-        Nothing
-    else
-        Just miti
+        if year < 2000 || year > 2092 || month < 1 || month > 12 || day < 1 || day > 32 then
+            Nothing
+        else
+            Just miti
