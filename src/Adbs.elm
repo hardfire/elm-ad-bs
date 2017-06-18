@@ -1,10 +1,29 @@
 module Adbs exposing (Miti, ad2bs, bs2ad, miti)
 
+{-| This library converts Date.Date type to Dates in the
+Bikarm Sambat Calendar (B.S) using the Miti type
+
+
+# Type
+
+@docs Miti
+@docs miti
+
+
+# Converters
+
+@docs ad2bs
+@docs bs2ad
+
+-}
+
 import Array
 import Date
 import Dict
 
 
+{-| Represent BS Date types in Miti format.
+-}
 type alias Miti =
     { year : Int
     , month : Int
@@ -12,6 +31,13 @@ type alias Miti =
     }
 
 
+{-| Constructor to create dates of the Miti type
+
+-- create a Miti type for 2047/03/11
+miti 2047 03 11 = { year = 2047, month = 3, day = 11 } : Miti
+
+-}
+miti : Int -> Int -> Int -> Miti
 miti year month day =
     { year = year
     , month = month
