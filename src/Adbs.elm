@@ -33,8 +33,8 @@ type alias Miti =
 
 {-| Constructor to create dates of the Miti type
 
--- create a Miti type for 2047/03/11
-miti 2047 03 11 = { year = 2047, month = 3, day = 11 } : Miti
+    miti 2047 3 11 =
+        { year = 2047, month = 3, day = 11 }
 
 -}
 miti : Int -> Int -> Int -> Miti
@@ -172,6 +172,10 @@ calendarData =
 
 
 {-| Coverts Date type to a date string in BS calendar format
+
+    ad2bs (<Sat Jan 09 1955 00:00:00 GMT +0545 (NPT)> : Date.Date)
+    -- Just { year = 2000, month = 9, day = 17 } : Maybe.Maybe Miti
+
 -}
 ad2bs : Date.Date -> Maybe Miti
 ad2bs ad =
@@ -181,6 +185,10 @@ ad2bs ad =
 
 
 {-| Coverts date string in the BS calendar format to Date type
+
+    bs2ad ({ year = 2000, month = 9, day = 17 } : Miti)
+    -- Just <Sat Jan 09 1955 00:00:00 GMT +0545 (NPT)> : Date.Date)
+
 -}
 bs2ad : Miti -> Maybe Date.Date
 bs2ad bs =
